@@ -47,6 +47,33 @@ const SignUp = () => {
     setError("");
 
     //SignUp API call
+    try {
+    const res = await fetch("http://localhost:8000/api/v1/auth/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        firstName,
+        lastName,
+        email,
+        password,
+        profileImageUrl // you can handle image upload separately
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      setError(data.message || "Registration failed");
+      return;
+    }
+
+    // Registration successful, redirect or show success
+    navigate("/login");
+  } catch (err) {
+    setError("Something went wrong. Please try again.");
+  }
 
   };
 
