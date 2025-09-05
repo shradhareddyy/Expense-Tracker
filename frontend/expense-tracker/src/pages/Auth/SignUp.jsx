@@ -4,6 +4,10 @@ import AuthLayout from '../../components/layouts/AuthLayout';
 import Input from '../../components/layouts/Inputs/Input';
 import { validateEmail } from '../../utils/helper';
 import ProfilePhotoSelector from '../../components/layouts/Inputs/ProfilePhotoSelector';
+import axiosInstance from '../../utils/axiosInstance';
+import { API_PATHS } from '../../utils/apiPaths';
+import { useContext } from 'react';
+import { UserContext } from '../../context/userContext';      
 
 const SignUp = () => {
 
@@ -15,6 +19,7 @@ const SignUp = () => {
 
 
   const[error,setError] = useState(null);
+  const{updateUser}=useContext(UserContext);
 
   const navigate = useNavigate();
 
@@ -47,34 +52,36 @@ const SignUp = () => {
     setError("");
 
     //SignUp API call
-    try {
-    const res = await fetch("http://localhost:8000/api/v1/auth/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
+    try{
+
+
+      //upload profile image if selected
+      if (profilePic){
+        const imguploadRes=await uploadImage(profilePic);
+        profileImageUrl=imguploadRes.imageUrl || "";
+      }
+      const response=await axiosInstance.post(API_PATHS.AUTH.REGISTER,{
         firstName,
         lastName,
         email,
         password,
-        profileImageUrl // you can handle image upload separately
-      })
-    });
+        profileImageUrl,
+      });
+      const{token,user}=response.data;
 
-    const data = await res.json();
-
-    if (!res.ok) {
-      setError(data.message || "Registration failed");
-      return;
+      if (token){
+        //store the token in the local storage
+        localStorage.setItem("token",token);
+        updateUser(user);
+        navigate("/dashboard");
+      }
+    }catch (error) {
+      if (error.response && error.response.data.message) {
+        setError(error.response.data.message);
+      } else {
+        setError("Something went wrong. Please try again.");
+      }
     }
-
-    // Registration successful, redirect or show success
-    navigate("/login");
-  } catch (err) {
-    setError("Something went wrong. Please try again.");
-  }
-
   };
 
   return (

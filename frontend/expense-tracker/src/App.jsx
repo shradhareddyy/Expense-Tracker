@@ -11,9 +11,12 @@ import { BrowserRouter as Router,
  import Home from './pages/Dashboard/Home';
  import Income from "./pages/Dashboard/Income";
  import Expense from './pages/Dashboard/Expense';
+import UserProvider from './context/userContext';
 
 const App = () => {
   return (
+    <UserProvider>
+      <div>
     <Router>
       <Routes>
         <Route path='/' element={<Root/>} />
@@ -24,6 +27,8 @@ const App = () => {
         <Route path='/income' exact element={<Income />} />
       </Routes>
     </Router>
+      </div>
+    </UserProvider>
   )
 }
 
