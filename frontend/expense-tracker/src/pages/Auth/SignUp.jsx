@@ -1,13 +1,14 @@
 import React,{useState} from 'react'
 import { useNavigate,Link } from 'react-router-dom';
 import AuthLayout from '../../components/layouts/AuthLayout';
-import Input from '../../components/layouts/Inputs/Input';
+import Input from '../../components/Inputs/Input';
 import { validateEmail } from '../../utils/helper';
-import ProfilePhotoSelector from '../../components/layouts/Inputs/ProfilePhotoSelector';
+import ProfilePhotoSelector from '../../components/Inputs/ProfilePhotoSelector';
 import axiosInstance from '../../utils/axiosInstance';
 import { API_PATHS } from '../../utils/apiPaths';
 import { useContext } from 'react';
-import { UserContext } from '../../context/userContext';      
+import { UserContext } from '../../context/userContext';  
+import uploadImage from '../../utils/uploadImage';    
 
 const SignUp = () => {
 
@@ -26,8 +27,9 @@ const SignUp = () => {
   //handle signup form submit
   const handleSignUp = async (e) => {
     e.preventDefault();
+    setError(null);
 
-    let profileImageUrl="";
+    // let profileImageUrl="";
 
     if (!validateEmail(email)) {
       setError("Please enter a valid email address.");
@@ -49,17 +51,33 @@ const SignUp = () => {
       return;
     }
 
-    setError("");
+    // setError("");
 
     //SignUp API call
     try{
 
 
       //upload profile image if selected
+      let profileImageUrl="";
       if (profilePic){
         const imguploadRes=await uploadImage(profilePic);
-        profileImageUrl=imguploadRes.imageUrl || "";
+        console.log("Image upload response:", imguploadRes);
+        profileImageUrl=imguploadRes.imageUrl || imguploadRes.url||"";
+        if (!profileImageUrl) {
+        // log full response and stop or decide to continue without image
+        console.error("Upload returned no URL:", imguploadRes);
+        throw new Error("Image upload failed");
       }
+
+      }
+
+
+    
+
+
+
+
+
       const response=await axiosInstance.post(API_PATHS.AUTH.REGISTER,{
         firstName,
         lastName,
@@ -72,9 +90,14 @@ const SignUp = () => {
       if (token){
         //store the token in the local storage
         localStorage.setItem("token",token);
+
         updateUser(user);
+          localStorage.setItem("user", JSON.stringify(user)); // <-- add this line
+
         navigate("/dashboard");
-      }
+      }else {
+      setError("Signup failed. No token returned.");
+    }
     }catch (error) {
       if (error.response && error.response.data.message) {
         setError(error.response.data.message);

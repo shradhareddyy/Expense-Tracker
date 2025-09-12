@@ -2,12 +2,13 @@ import React,{createContext,useState,useEffect} from 'react';
 
 export const UserContext=createContext();
 
-const UserProvider = ({children}) => {
-    const [user,setUser]=useState(null);
+export const UserProvider = ({children}) => {
+    const [user,setUser]=useState(JSON.parse(localStorage.getItem("user")) || null);
 
    //function to update user info
     const updateUser=(userData)=>{
      setUser(userData);
+     localStorage.setItem("user", JSON.stringify(userData));
     };
 
     //function to clear user info on logout
@@ -22,6 +23,6 @@ const UserProvider = ({children}) => {
             {children}
         </UserContext.Provider>
     );
-}
+};
 
-export default UserProvider;
+// export default UserProvider;
